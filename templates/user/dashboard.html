@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - HomeConnect</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/templatemo-villa-agency.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/owl.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animate.css') }}">
+    <style>
+        body {
+            background-color: #f4f4f4; /* Light background for the entire page */
+            font-family: 'Arial', sans-serif; /* Consistent font */
+            padding-top: 70px; /* Add padding to prevent content from being hidden behind the navbar */
+        }
+        .sidebar {
+            background-color: #ffffff; /* White background for the sidebar */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            height: 100vh; /* Full height */
+            position: fixed; /* Fixed sidebar */
+            width: 250px; /* Width of the sidebar */
+            overflow-y: auto; /* Scroll if content overflows */
+        }
+        .main-content {
+            margin-left: 270px; /* Space for the sidebar */
+            padding: 20px;
+        }
+        .stats-card {
+            background-color: #f8f9fa; /* Card background */
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        }
+        .action-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #f35525; /* Primary button color */
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .action-button:hover {
+            background-color: #e04012; /* Darker shade on hover */
+        }
+        .search-form {
+            background-color: #ffffff; /* White background for the search form */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .search-form .form-control {
+            margin-bottom: 15px; /* Space between form fields */
+        }
+        .dashboard-card {
+            background-color: #ffffff; /* White background for dashboard cards */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        h2, h4 {
+            color: #1e1e1e; /* Dark text color for headings */
+        }
+        .property-item {
+            border: 1px solid #e0e0e0; /* Light border for property items */
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #ffffff; /* White background for property items */
+            transition: box-shadow 0.3s;
+        }
+        .property-item:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Shadow on hover */
+        }
+    </style>
+</head>
+<body>
+    {% include 'nav.html' %}
+
+   <!-- Sidebar -->
+    <div class="sidebar">
+        <h4>Dashboard Stats</h4>
+        <div class="stats-card">
+            <h3>0</h3>
+            <p>Saved Properties</p>
+        </div>
+        <div class="stats-card">
+            <h3>0</h3>
+            <p>Scheduled Visits</p>
+        </div>
+
+        
+        <div class="stats-card">
+            <h4>Schedule a Property Visit</h4>
+            <p>Interested in viewing a property? Schedule a visit with one of our agents.</p>
+            <a href="#" class="action-button">Schedule Now</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h2>Search Properties</h2>
+        <form action="{{ url_for('search_properties') }}" method="GET" class="search-form mb-4">
+            <div class="form-group">
+                <input type="text" name="location" class="form-control" placeholder="Location" required>
+            </div>
+            <div class="form-group">
+                <input type="number" name="min_price" class="form-control" placeholder="Min Price" min="0">
+            </div>
+            <div class="form-group">
+                <input type="number" name="max_price" class="form-control" placeholder="Max Price" min="0">
+            </div>
+            <div class="form-group">
+                <select name="property_type" class="form-control">
+                    <option value="">Property Type</option>
+                    <option value="Apartment">Apartment</option>
+                    <option value="House">House</option>
+                    <option value="Commercial">Commercial</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" style="background-color: #f35525; border-color: #f35525;">Search</button>
+        </form>
+
+        <!-- Your existing content goes here -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h4>Properties</h4>
+                    {% if properties %}
+                        <div class="row">
+                            {% for property in properties %}
+                            <div class="col-12 mb-4">
+                                <div class="property-item d-flex">
+                                    <div class="property-image">
+                                        {% if property.image %}
+                                            <img src="{{ url_for('static', filename='uploads/' + property.image) }}" 
+                                                 alt="{{ property.title }}" class="img-fluid" style="width: 120px; height: 90px; object-fit: cover;">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='images/default-property.png') }}" 
+                                                 alt="Default Property Image" class="img-fluid" style="width: 120px; height: 90px; object-fit: cover;">
+                                        {% endif %}
+                                    </div>
+                                    <div class="property-info ms-3">
+                                        <h5 class="mb-1">{{ property.title }}</h5>
+                                        <p class="mb-1">KSH {{ "{:,.2f}".format(property.price) }}</p>
+                                        <small class="text-muted">
+                                            {{ property.bedrooms }} beds • {{ property.bathrooms }} baths • {{ property.area }}m²
+                                        </small>
+                                        <div class="mt-2">
+                                            <a href="{{ url_for('property_details', property_id=property.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">View Details</a>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                                    data-bs-target="#scheduleVisitModal{{ property.id }}">
+                                                Schedule Visit
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No properties available at the moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="col-lg-6">
+                <div class="dashboard-card">
+                    <h4>Recent Activities</h4>
+                    <p>No recent activities to display.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Statistics -->
+        {% if price_stats %}
+        <div class="stats-card">
+            <h5>Price Statistics for {{ search_params.location }}</h5>
+            <p>Average Price: KSh {{ "{:,.2f}".format(price_stats.avg_price) }}</p>
+            <p>Price Range: KSh {{ "{:,.2f}".format(price_stats.min_price) }} - {{ "{:,.2f}".format(price_stats.max_price) }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Recommended Properties -->
+        <div class="dashboard-card">
+            <h4>Recommended Properties</h4>
+            {% if recommended_properties %}
+                <div class="row">
+                    {% for property in recommended_properties %}
+                    <div class="col-md-4 mb-4">
+                        <div class="property-item">
+                            <div class="property-info p-3">
+                                <h5 class="mb-1">{{ property.agency }}</h5>
+                                <p class="mb-1">{{ property.neighborhood }}</p>
+                                <p class="mb-1">KSh {{ "{:,.2f}".format(property.price) }}</p>
+                                <small class="text-muted">
+                                    {{ property.bedrooms }} beds • {{ property.bathrooms }} baths 
+                                    {% if property.sq_mtrs %}
+                                    • {{ property.sq_mtrs }}m²
+                                    {% endif %}
+                                </small>
+                                <div class="mt-2">
+                                    <span class="badge bg-success">{{ property.similarity_score }}% Match</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No recommendations available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Include your scripts -->
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+</body>
+</html> 

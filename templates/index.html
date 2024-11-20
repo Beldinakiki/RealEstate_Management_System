@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title> Home Connect </title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="\static\css\bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="\static\css\fontawesome.css">
+    <link rel="stylesheet" href="\static\css\templatemo-villa-agency.css">
+    <link rel="stylesheet" href="\static\css\owl.css">
+    <link rel="stylesheet" href="\static\css\animate.css">
+    <link rel="stylesheet"href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
+
+    <style>
+        .logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-container {
+            width: 50px;  /* Smaller size - adjust as needed */
+            height: 50px;  /* Keep equal width and height for perfect circle */
+            border-radius: 50%;  /* Makes it round */
+            overflow: hidden;  /* Ensures the image stays within the round container */
+            background: white;  /* Optional: adds a white background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #f35525;  /* Optional: adds a border */
+        }
+        
+        .site-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;  /* Makes the image cover the container */
+        }
+        
+        .logo {
+            color: #1e1e1e;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: none;
+            margin: 0;
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        /* For sticky header */
+        .header-sticky .logo-container {
+            width: 30px;  /* Even smaller when sticky */
+            height: 30px;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 767px) {
+            .logo-container {
+                width: 28px;  /* Smaller on mobile */
+                height: 28px;
+            }
+        }
+
+        .contact.section {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+        
+        .contact .section-heading h6 {
+            color: #f35525;
+            font-size: 15px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .contact .section-heading .contact-title {
+            color: #1e1e1e;
+            font-size: 30px;
+            font-weight: 700;
+            text-transform: capitalize;
+            margin-bottom: 45px;
+        }
+        
+        .info-item {
+            margin-bottom: 20px;
+        }
+        
+        .info-item h6 {
+            color: #1e1e1e;
+            font-weight: 600;
+        }
+        
+        .info-item p {
+            color: #666;
+            margin: 0;
+        }
+        
+        #contact-form {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        #contact-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1e1e1e;
+            font-weight: 500;
+        }
+
+        #contact-form input,
+        #contact-form textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        #contact-form input:focus,
+        #contact-form textarea:focus {
+            outline: none;
+            border-color: #f35525;
+            box-shadow: 0 0 0 2px rgba(243, 85, 37, 0.2);
+        }
+
+        #contact-form textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .orange-button {
+            width: 100%;
+            padding: 15px;
+            background: #f35525;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .orange-button:hover {
+            background: #e04012;
+        }
+
+        .alert {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            margin: 0;
+            border-radius: 0;
+            text-align: center;
+        }
+
+        /* Updated login button styles - smaller size */
+        .header-area .main-nav .nav li:last-child a {
+            background-color: #1e1e1e;
+            color: #fff;
+            padding: 8px 20px !important;  /* Reduced padding */
+            border-radius: 20px;           /* Slightly reduced border radius */
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: auto;                  /* Changed from 100% to auto */
+            line-height: 1;
+            font-size: 14px;              /* Slightly smaller font */
+        }
+
+        .header-area .main-nav .nav li:last-child a:hover {
+            background-color: #f35525;
+            color: #fff;
+        }
+
+        /* Adjust for sticky header */
+        .header-area.header-sticky .main-nav .nav li:last-child a {
+            padding: 8px 20px !important;  /* Same padding when sticky */
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Ensure proper scroll position accounting for fixed header */
+        #contact {
+            scroll-margin-top: 100px; /* Adjust based on your header height */
+        }
+    </style>
+
+  </head>
+
+<body>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- Add this right after preloader and before sub-header -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+  </div>
+
+  <div class="sub-header">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-8">
+          <ul class="info">
+            <li><i class="fa fa-envelope"></i> kinyuabeldina@gmail.com</li>
+            <li><i class="fa fa-map"></i> Westlands Nairobi, Kenya</li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-4">
+          <ul class="social-links">
+            <li><a href="#"><i class="fab fa-facebook"></i></a></li>
+            <li><a href="#" target="_blank"><i class="fab fa-twitter"></i></a></li>
+            <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
+            <li><a href="#"><i class="fab fa-instagram"></i></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <!-- Logo -->
+                    <div class="logo-wrapper">
+                        <div class="logo-container">
+                            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="HomeConnect Logo" class="site-logo">
+                        </div>
+                        <a href="/" class="logo">
+                            HomeConnect
+                        </a>
+                    </div>
+                    <!-- Menu -->
+                    <ul class="nav">
+                      <li><a href="/" class="active">Home</a></li>
+                      <li><a href="{{ url_for('login', next='properties', message='Please log in to view properties') }}">Properties</a></li>
+                      <li><a href="#contact" class="smooth-scroll">Contact Us</a></li>
+                      {% if current_user.is_authenticated %}
+                          <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                      {% else %}
+                          <li><a href="/login">Login</a></li>
+                      {% endif %}
+                  </ul>   
+                    <a class='menu-trigger'>
+                        <span>Menu</span>
+                    </a>
+                    <!-- ***** Menu End ***** -->
+                </nav>
+            </div>
+        </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+
+  <div class="main-banner">
+    <div class="owl-carousel owl-banner">
+      <div class="item item-1">
+        <div class="header-text">
+          <span class="category">Nairobi, <em>Kenya</em></span>
+          <h2>Effortlessly<br>Connecting You to Your Dream Property</h2>
+        </div>
+      </div>
+      <div class="item item-2">
+        <div class="header-text">
+          <span class="category">Kisumu, <em>Kenya</em></span>
+          <h2>Be Quick!<br>Get the best villa in town</h2>
+        </div>
+      </div>
+      <div class="item item-3">
+        <div class="header-text">
+          <span class="category">Lavington, <em>Kenya</em></span>
+          <h2>Act Now!<br>Get the highest level penthouse</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="section best-deal">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="section-heading">
+            <h6>| Best Deal</h6>
+            <h2>Find Your Best Deal Right Now!</h2>
+          </div>
+        </div>
+        <div class="col-lg-12">
+          <div class="tabs-content">
+            <div class="row">
+              <div class="nav-wrapper ">
+                <ul class="nav nav-tabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="appartment-tab" data-bs-toggle="tab" data-bs-target="#appartment" type="button" role="tab" aria-controls="appartment" aria-selected="true">Appartment</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="villa-tab" data-bs-toggle="tab" data-bs-target="#villa" type="button" role="tab" aria-controls="villa" aria-selected="false">Villa House</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="penthouse-tab" data-bs-toggle="tab" data-bs-target="#penthouse" type="button" role="tab" aria-controls="penthouse" aria-selected="false">Penthouse</button>
+                  </li>
+                </ul>
+              </div>              
+              <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="appartment" role="tabpanel" aria-labelledby="appartment-tab">
+                  <div class="row">
+                    <div class="col-lg-3">
+                      <div class="info-table">
+                        <ul>
+                          <li>Total Flat Space <span>185 m2</span></li>
+                          <li>Floor number <span>26th</span></li>
+                          <li>Number of rooms <span>4</span></li>
+                          <li>Parking Available <span>Yes</span></li>
+                          <li>Payment Process <span>Bank</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <img src="\static\images\deal-01.jpg" alt="">
+                    </div>
+                    <div class="col-lg-3">
+                      <h4>Extra Info About Property</h4>
+                      <p>Discover your dream home with HomeConnect, where luxury meets comfort in every property. Our carefully curated selection of apartments and houses offers modern amenities, prime locations, and exceptional value. <br><br>From stunning city views to peaceful suburban retreats, we provide diverse housing options to match your lifestyle. Each property is thoroughly vetted to ensure quality, comfort, and the perfect blend of style and functionality for our discerning clients.</p>
+                     
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="villa" role="tabpanel" aria-labelledby="villa-tab">
+                  <div class="row">
+                    <div class="col-lg-3">
+                      <div class="info-table">
+                        <ul>
+                          <li>Total Flat Space <span>250 m2</span></li>
+                          <li>Floor number <span>26th</span></li>
+                          <li>Number of rooms <span>5</span></li>
+                          <li>Parking Available <span>Yes</span></li>
+                          <li>Payment Process <span>Bank</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <img src="\static\images\deal-02.jpg" alt="">
+                    </div>
+                   
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="penthouse" role="tabpanel" aria-labelledby="penthouse-tab">
+                  <div class="row">
+                    <div class="col-lg-3">
+                      <div class="info-table">
+                        <ul>
+                          <li>Total Flat Space <span>320 m2</span></li>
+                          <li>Floor number <span>34th</span></li>
+                          <li>Number of rooms <span>6</span></li>
+                          <li>Parking Available <span>Yes</span></li>
+                          <li>Payment Process <span>Bank</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <img src="\static\images\deal-03.jpg" alt="">
+                    </div>
+                    <div class="col-lg-3">
+                      <h4>Extra Info About Penthouse</h4>
+                      <p>Discover your dream home with HomeConnect, where luxury meets comfort in every property. Our carefully curated selection of apartments and houses offers modern amenities, prime locations, and exceptional value. <br><br>From stunning city views to peaceful suburban retreats, we provide diverse housing options to match your lifestyle. Each property is thoroughly vetted to ensure quality, comfort, and the perfect blend of style and functionality for our discerning clients.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add this before the footer -->
+  <div id="contact" class="contact section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="section-heading">
+                    <h6>| Contact Us</h6>
+                    <h2 class="contact-title">Get In Touch With Us</h2>
+                    <p>Have questions about our properties or services? We're here to help! Fill out the form below and our team will get back to you shortly.</p>
+                </div>
+                <!-- Contact Information -->
+                <div class="row mt-4">
+                    <div class="col-lg-12 mb-4">
+                        <div class="info-item d-flex align-items-center">
+                            <i class="fa fa-map-marker-alt me-3" style="color: #f35525;"></i>
+                            <div>
+                                <h6 class="mb-0">Location</h6>
+                                <p class="mb-0">Westlands Nairobi, Kenya</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mb-4">
+                        <div class="info-item d-flex align-items-center">
+                            <i class="fa fa-envelope me-3" style="color: #f35525;"></i>
+                            <div>
+                                <h6 class="mb-0">Email Address</h6>
+                                <p class="mb-0">kinyuabeldina@gmail.com</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mb-4">
+                        <div class="info-item d-flex align-items-center">
+                            <i class="fa fa-phone me-3" style="color: #f35525;"></i>
+                            <div>
+                                <h6 class="mb-0">Phone Number</h6>
+                                <p class="mb-0">+254 113839448</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <form id="contact-form" action="{{ url_for('contact') }}" method="POST">
+                    <div class="row">
+                        <div class="col-lg-6 mb-3">
+                            <fieldset>
+                                <label for="name">Full Name</label>
+                                <input type="text" name="name" id="name" placeholder="Your Name" required>
+                            </fieldset>
+                        </div>
+                        <div class="col-lg-6 mb-3">
+                            <fieldset>
+                                <label for="email">Email Address</label>
+                                <input type="email" name="email" id="email" pattern="[^ @]*@[^ @]*" placeholder="Your Email" required>
+                            </fieldset>
+                        </div>
+                        <div class="col-lg-12 mb-3">
+                            <fieldset>
+                                <label for="subject">Subject</label>
+                                <input type="text" name="subject" id="subject" placeholder="Subject">
+                            </fieldset>
+                        </div>
+                        <div class="col-lg-12 mb-3">
+                            <fieldset>
+                                <label for="message">Message</label>
+                                <textarea name="message" id="message" placeholder="Your Message"></textarea>
+                            </fieldset>
+                        </div>
+                        <div class="col-lg-12">
+                            <fieldset>
+                                <button type="submit" class="orange-button">Send Message</button>
+                            </fieldset>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <footer>
+    <div class="container">
+      <div class="col-lg-8">
+        <p>Copyright © 2024 Beldina Kinyua. All rights reserved. 
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <!-- Bootstrap core JavaScript -->
+  <script src="\static\js\jquery.min.js"></script>
+  <script src="\static\js\bootstrap.min.js"></script>
+  <script src="\static\js\isotope.min.js"></script>
+  <script src="\static\js\owl-carousel.js"></script>
+  <script src="\static\js\counter.js"></script>
+  <script src="\static\js\custom.js"></script>
+
+  <!-- Add this before closing body tag -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Get all smooth scroll links
+      const smoothScrollLinks = document.querySelectorAll('.smooth-scroll');
+      
+      smoothScrollLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+              e.preventDefault();
+              
+              // Get the target element
+              const targetId = this.getAttribute('href');
+              const targetElement = document.querySelector(targetId);
+              
+              if (targetElement) {
+                  // Get header height for offset
+                  const headerHeight = document.querySelector('.header-area').offsetHeight;
+                  
+                  // Calculate position
+                  const elementPosition = targetElement.getBoundingClientRect().top;
+                  const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+                  
+                  // Smooth scroll to element
+                  window.scrollTo({
+                      top: offsetPosition,
+                      behavior: 'smooth'
+                  });
+              }
+          });
+      });
+  });
+  </script>
+
+  </body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Login - Home Connect</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/templatemo-villa-agency.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="HomeConnect Logo" class="rounded-circle mb-4" 
+                            style="height: 100px; width: 100px; object-fit: cover;">
+                            <h2 class="mt-3">HomeConnect</h2>
+                            <h6 style="color: #f35525;">| Login</h6>
+                        </div>
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <div class="mb-3">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="orange-button">Login</button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-4">
+                            <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}" class="text-decoration-none" style="color: #f35525;">Register here</a></p>
+                            <p class="mt-2"><a href="{{ url_for('forgot_password') }}" class="text-decoration-none" style="color: #f35525;">Forgot Password?</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        body {
+            background-color: white;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+        .orange-button {
+            background-color: #f35525;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .orange-button:hover {
+            background-color: #da4a1f;
+        }
+        input:focus {
+            border-color: #f35525 !important;
+            box-shadow: 0 0 0 0.2rem rgba(243, 85, 37, 0.25) !important;
+        }
+        .card h6 {
+            color: #f35525;
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html> 

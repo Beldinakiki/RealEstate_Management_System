@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Dashboard - HomeConnect</title>
+    
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/templatemo-villa-agency.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/owl.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animate.css') }}">
+    
+    <style>
+        .dashboard-section {
+            background-color: #fafafa;
+            padding: 60px 0;
+            margin-top: 80px;
+        }
+        
+        .property-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+        
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .property-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .property-info {
+            padding: 20px;
+        }
+        
+        .page-heading {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url("{{ url_for('static', filename='images/page-heading-bg.jpg') }}");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            padding: 80px 0;
+            margin-bottom: 40px;
+            text-align: center;
+            color: white;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+        }
+        
+        .btn-primary {
+            background-color: #f35525;
+            border-color: #f35525;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e04012;
+            border-color: #e04012;
+        }
+        
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .modal-body h6.text-primary {
+            color: #f35525 !important;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #f35525;
+            padding-bottom: 0.5rem;
+        }
+        
+        .list-unstyled li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal-body .gap-3 {
+            gap: 1rem;
+        }
+        
+        .btn-outline-primary {
+            color: #f35525;
+            border-color: #f35525;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #f35525;
+            color: white;
+        }
+        
+        .btn-schedule {
+            background-color: #2a2a2a;
+            color: #f35525;
+            border: 2px solid #f35525;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .btn-schedule:hover {
+            background-color: #f35525;
+            color: #2a2a2a;
+            border-color: #2a2a2a;
+            transform: translateY(-2px);
+        }
+        
+        .btn-schedule i {
+            margin-right: 8px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .table th {
+            border-top: none;
+            color: #1e1e1e;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        /* Visit Table Styles */
+        .info-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        /* Button Styles */
+        .main-button {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-custom {
+            font-size: 14px;
+            padding: 12px 25px;
+            background-color: #1e1e1e;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn-custom:hover {
+            background-color: #f35525;
+            color: #fff;
+        }
+
+        .btn-custom i {
+            font-size: 14px;
+        }
+
+        /* Fix form display for delete button */
+        .main-button form {
+            margin: 0;
+        }
+
+        .main-button form button {
+            height: 100%;
+        }
+
+        /* Ensure consistent height across all buttons */
+        .main-button > * {
+            height: 45px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Include your navigation -->
+    {% include 'nav.html' %}
+
+    <!-- Page Heading -->
+    <div class="page-heading">
+        <div class="container">
+            <h2>Agent Dashboard</h2>
+            <span>Manage Your Properties</span>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <h3>My Properties</h3>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPropertyModal">
+                        Add New Property
+                    </button>
+                </div>
+            </div>
+
+            <!-- Properties Grid -->
+            <div class="row">
+                {% for property in properties %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="property-card">
+                            {% if property.image %}
+                                <img src="{{ url_for('static', filename='uploads/' + property.image) }}"
+                                     alt="{{ property.title }}"
+                                     class="property-image"
+                                     onerror="this.src='{{ url_for('static', filename='images/default-property.png') }}'">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/default-property.png') }}"
+                                     alt="Default Property Image"
+                                     class="property-image">
+                            {% endif %}
+                            <div class="property-info">
+                                <span class="category">{{ property.type }}</span>
+                                <h6>Ksh{{ property.price }}</h6>
+                                <h4>{{ property.title }}</h4>
+                                <ul>
+                                    <li>Bedrooms: <span>{{ property.bedrooms }}</span></li>
+                                    <li>Bathrooms: <span>{{ property.bathrooms }}</span></li>
+                                    <li>Area: <span>{{ property.area }}m²</span></li>
+                                </ul>
+                                <div class="main-button d-flex gap-2">
+                                    <button class="btn-custom" data-bs-toggle="modal" data-bs-target="#propertyModal{{ property.id }}">
+                                        <i class="fa fa-eye"></i> View Details
+                                    </button>
+                                    
+                                    <button class="btn-custom blue" data-bs-toggle="modal" data-bs-target="#editPropertyModal{{ property.id }}">
+                                        <i class="fa fa-edit"></i> Edit
+                                    </button>
+                                    
+                                    <form action="{{ url_for('delete_property', property_id=property.id) }}" 
+                                          method="POST" 
+                                          class="d-inline" 
+                                          onsubmit="return confirm('Are you sure you want to delete this property?');">
+                                        <button type="submit" class="btn-custom red">
+                                            <i class="fa fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Property Modal -->
+    <div class="modal fade" id="addPropertyModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Property</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('add_property') }}" method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Title</label>
+                                <input type="text" class="form-control" name="title" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Type</label>
+                                <select class="form-control" name="type" required>
+                                    <option value="Apartment">Apartment</option>
+                                    <option value="Maisonettes">Maisonettes</option>
+                                    <option value="Townhouse">Town House</option>
+                                    <option value="Penthouse">Penthouse</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Price(Ksh)</label>
+                                <input type="number" class="form-control" name="price" required min="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Location</label>
+                                <input type="text" class="form-control" name="location" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Bedrooms</label>
+                                <input type="number" class="form-control" name="bedrooms" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Bathrooms</label>
+                                <input type="number" class="form-control" name="bathrooms" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Area (sq ft)</label>
+                                <input type="number" class="form-control" name="area" min="1">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label>Description</label>
+                                <textarea class="form-control" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label>Property Image</label>
+                                <input type="file" class="form-control" name="image" accept="image/*" required>
+                            </div>
+                            
+                            <!-- Additional Property Details -->
+                            <h5 class="mt-4">Additional Details</h5>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label>Garage Spaces</label>
+                                    <input type="number" class="form-control" name="garage" value="0" min="1">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Year Built</label>
+                                    <input type="number" class="form-control" name="year_built" min="2000" max="9999" required pattern="\d{4}" title="Please enter a valid 4-digit year (e.g., 2023)">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Property Status</label>
+                                    <select class="form-control" name="property_status">
+                                        <option value="For Sale">For Sale</option>
+                                        <option value="For Rent">For Rent</option>
+                                        <option value="Sold">Sold</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Lot Size (sq ft)</label>
+                                    <input type="number" step="0.01" class="form-control" name="lot_size" min="1">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Basement</label>
+                                    <select class="form-control" name="basement">
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Roofing</label>
+                                    <input type="text" class="form-control" name="roofing">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Parking</label>
+                                    <input type="text" class="form-control" name="parking">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Heating</label>
+                                    <input type="text" class="form-control" name="heating">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Cooling</label>
+                                    <input type="text" class="form-control" name="cooling">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Property</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Property Modals -->
+    {% for property in properties %}
+        <div class="modal fade" id="editPropertyModal{{ property.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Property: {{ property.title }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ url_for('edit_property', property_id=property.id) }}" method="POST" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label>Title</label>
+                                    <input type="text" class="form-control" name="title" value="{{ property.title }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Type</label>
+                                    <select class="form-control" name="type" required>
+                                        <option value="Apartment" {% if property.type == 'apartment' %}selected{% endif %}>Apartment</option>
+                                        <option value="Maisonettes" {% if property.type == 'Maisonettes' %}selected{% endif %}>Maisonettes</option>
+                                        <option value="Townhouse" {% if property.type == 'Townhouse' %}selected{% endif %}>Town House</option>
+                                        <option value="Penthouse" {% if property.type == 'Penthouse' %}selected{% endif %}>Penthouse</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Price(Ksh)</label>
+                                    <input type="number" class="form-control" name="price" value="{{ property.price }}" required min="1">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Location</label>
+                                    <input type="text" class="form-control" name="location" value="{{ property.location }}" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Bedrooms</label>
+                                    <input type="number" class="form-control" name="bedrooms" value="{{ property.bedrooms }}" min="1">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Bathrooms</label>
+                                    <input type="number" class="form-control" name="bathrooms" value="{{ property.bathrooms }}" min="1">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label>Area (sq ft)</label>
+                                    <input type="number" class="form-control" name="area" value="{{ property.area }}" min="1">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label>Description</label>
+                                    <textarea class="form-control" name="description" rows="3">{{ property.description }}</textarea>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label>Property Image</label>
+                                    <input type="file" class="form-control" name="image" accept="image/*">
+                                </div>
+
+                                <!-- Additional Property Details -->
+                                <h5 class="mt-4">Additional Details</h5>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label>Garage Spaces</label>
+                                        <input type="number" class="form-control" name="garage" 
+                                               value="{{ property.details.garage if property.details else '0' }}" min="0">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Year Built</label>
+                                        <input type="number" class="form-control" name="year_built" 
+                                               value="{{ property.details.year_built if property.details else '' }}"
+                                               min="2000" max="9999" required pattern="\d{4}" 
+                                               title="Please enter a valid 4-digit year (e.g., 2023)">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Property Status</label>
+                                        <select class="form-control" name="property_status">
+                                            <option value="For Sale" {% if property.details and property.details.property_status == 'For Sale' %}selected{% endif %}>For Sale</option>
+                                            <option value="For Rent" {% if property.details and property.details.property_status == 'For Rent' %}selected{% endif %}>For Rent</option>
+                                            <option value="Sold" {% if property.details and property.details.property_status == 'Sold' %}selected{% endif %}>Sold</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label>Lot Size (sq ft)</label>
+                                        <input type="number" step="0.01" class="form-control" name="lot_size" 
+                                               value="{{ property.details.lot_size if property.details else '' }}" min="1">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label>Basement</label>
+                                        <select class="form-control" name="basement">
+                                            <option value="0" {% if not property.details or not property.details.basement %}selected{% endif %}>No</option>
+                                            <option value="1" {% if property.details and property.details.basement %}selected{% endif %}>Yes</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label>Roofing</label>
+                                        <input type="text" class="form-control" name="roofing" 
+                                               value="{{ property.details.roofing if property.details else '' }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label>Parking</label>
+                                        <input type="text" class="form-control" name="parking" 
+                                               value="{{ property.details.parking if property.details else '' }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label>Heating</label>
+                                        <input type="text" class="form-control" name="heating" 
+                                               value="{{ property.details.heating if property.details else '' }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label>Cooling</label>
+                                        <input type="text" class="form-control" name="cooling" 
+                                               value="{{ property.details.cooling if property.details else '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Property</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- View Details Modal -->
+    {% for property in properties %}
+        <div class="modal fade" id="viewDetailsModal{{ property.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Property Details: {{ property.title }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% if property.details %}
+                            <div class="row">
+                                <!-- Basic Details -->
+                                <div class="col-md-6 mb-4">
+                                    <h6 class="text-primary">Basic Details</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Property Status:</strong> {{ property.details.property_status }}</li>
+                                        <li><strong>Year Built:</strong> {{ property.details.year_built or 'N/A' }}</li>
+                                        <li><strong>Garage Spaces:</strong> {{ property.details.garage or '0' }}</li>
+                                        <li><strong>Lot Size:</strong> {{ property.details.lot_size or 'N/A' }} sq ft</li>
+                                        <li><strong>Basement:</strong> {{ 'Yes' if property.details.basement else 'No' }}</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Building Systems -->
+                                <div class="col-md-6 mb-4">
+                                    <h6 class="text-primary">Building Systems</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Roofing:</strong> {{ property.details.roofing or 'N/A' }}</li>
+                                        <li><strong>Parking:</strong> {{ property.details.parking or 'N/A' }}</li>
+                                        <li><strong>Heating:</strong> {{ property.details.heating or 'N/A' }}</li>
+                                        <li><strong>Cooling:</strong> {{ property.details.cooling or 'N/A' }}</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Features -->
+                                {% if property.details.features %}
+                                <div class="col-12 mb-4">
+                                    <h6 class="text-primary">Features</h6>
+                                    <p>{{ property.details.features }}</p>
+                                </div>
+                                {% endif %}
+
+                                <!-- Amenities -->
+                                {% if property.details.amenities %}
+                                <div class="col-12 mb-4">
+                                    <h6 class="text-primary">Amenities</h6>
+                                    <p>{{ property.details.amenities }}</p>
+                                </div>
+                                {% endif %}
+
+                                <!-- Interior Features -->
+                                {% if property.details.interior_features %}
+                                <div class="col-12 mb-4">
+                                    <h6 class="text-primary">Interior Features</h6>
+                                    <p>{{ property.details.interior_features }}</p>
+                                </div>
+                                {% endif %}
+
+                                <!-- Exterior Features -->
+                                {% if property.details.exterior_features %}
+                                <div class="col-12 mb-4">
+                                    <h6 class="text-primary">Exterior Features</h6>
+                                    <p>{{ property.details.exterior_features }}</p>
+                                </div>
+                                {% endif %}
+
+                                <!-- Floor Plan -->
+                                {% if property.details.floor_plan %}
+                                <div class="col-12 mb-4">
+                                    <h6 class="text-primary">Floor Plan</h6>
+                                    <img src="{{ url_for('static', filename='uploads/' + property.details.floor_plan) }}" 
+                                         alt="Floor Plan" class="img-fluid">
+                                </div>
+                                {% endif %}
+
+                                <!-- Virtual Tours and Videos -->
+                                <div class="col-12">
+                                    <h6 class="text-primary">Virtual Experience</h6>
+                                    <div class="d-flex gap-3">
+                                        {% if property.details.video_url %}
+                                        <a href="{{ property.details.video_url }}" target="_blank" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fa fa-video"></i> Watch Video
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if property.details.virtual_tour_url %}
+                                        <a href="{{ property.details.virtual_tour_url }}" target="_blank" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fa fa-street-view"></i> Virtual Tour
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Last Updated -->
+                                <div class="col-12 mt-4">
+                                    <small class="text-muted">
+                                        Last updated: {{ property.details.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No additional details available for this property.</p>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+<!-- agent dashboard displaying scheduled visits -->
+<div class="info-box mb-4">
+    <h4 class="mb-3">Scheduled Visits</h4>
+    {% if scheduled_visits %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Client</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in scheduled_visits %}
+                <tr>
+                    <td>{{ visit.property.title }}</td>
+                    <td>
+                        {{ visit.user.username }}<br>
+                        <small class="text-muted">{{ visit.user.email }}</small>
+                    </td>
+                    <td>{{ visit.visit_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ visit.visit_time.strftime('%H:%M') }}</td>
+                    <td>
+                        <span class="badge {% if visit.status == 'accepted' %}bg-success{% else %}bg-warning{% endif %}">
+                            {{ visit.status.title() }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if visit.status == 'pending' %}
+                        <form action="{{ url_for('accept_visit', visit_id=visit.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn-custom orange btn-sm">
+                                <i class="fa fa-check"></i> Accept
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No scheduled visits at the moment.</p>
+    {% endif %}
+</div>
+
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/isotope.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/owl-carousel.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/counter.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+</body>
+</html>

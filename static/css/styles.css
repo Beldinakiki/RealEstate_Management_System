@@ -1,0 +1,460 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    box-sizing: border-box;
+}
+
+.btn {
+    padding: 10px 15px;
+    background-color: #ff0099;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #007bff;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: black;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table, .table th, .table td {
+    border: 1px solid #ddd;
+}
+
+.table th, .table td {
+    padding: 10px;
+    text-align: left;
+}
+
+/* Custom Button Styles */
+.btn-custom {
+    font-size: 8px;
+    padding: 5px 13px;
+    background-color: #f35525;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 32px;
+}
+
+.btn-custom:hover {
+    background-color: #d63e12;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.btn-custom.orange {
+    background-color: #f35525;
+}
+
+.btn-custom.orange:hover {
+    background-color: #1e1e1e;
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-radius: 15px 15px 0 0;
+    padding: 20px 25px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header .modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e1e1e;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+/* Form Styles */
+.schedule-form .form-label {
+    font-weight: 500;
+    color: #1e1e1e;
+    margin-bottom: 8px;
+}
+
+.custom-input {
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid #e1e1e1;
+    padding: 10px 15px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.custom-input:focus {
+    border-color: #f35525;
+    box-shadow: 0 0 0 0.2rem rgba(243, 85, 37, 0.15);
+}
+
+/* Gap utility */
+.gap-2 {
+    gap: 0.5rem !important;
+}
+
+/* Icon styles */
+.fa {
+    font-size: 14px;
+}
+
+/* Property Details Modal Styles */
+.section-title {
+    color: #1e1e1e;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f35525;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.detail-item i {
+    color: #f35525;
+    font-size: 1.2rem;
+}
+
+.details-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.details-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.details-list li:last-child {
+    border-bottom: none;
+}
+
+.details-list .label {
+    color: #666;
+    font-weight: 500;
+}
+
+.details-list .value {
+    color: #1e1e1e;
+    font-weight: 600;
+}
+
+.property-status .badge {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+
+.location {
+    color: #666;
+}
+
+.location i {
+    color: #f35525;
+    margin-right: 5px;
+}
+
+.price {
+    color: #f35525;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.description {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Property Status Badge Style */
+.badge {
+    display: inline-block;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 20px;
+}
+
+.bg-orange {
+    background-color: #f35525;
+    color: #ffffff;
+}
+
+.property-status {
+    margin-bottom: 15px;
+}
+
+.property-status .badge {
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Visit Status Badges */
+.badge {
+    padding: 8px 12px;
+    border-radius: 15px;
+    font-weight: 500;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge.bg-success {
+    background-color: #28a745;
+    color: #fff;
+}
+
+/* Table Styles */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Button Styles */
+.btn-custom.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+/* Visit Table Styles */
+.info-box {
+    background: #fff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    padding: 12px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000;
+}
+
+.bg-success {
+    background-color: #28a745 !important;
+    color: #fff;
+}
+
+/* Button Styles */
+.btn-custom.btn-sm {
+    padding: 8px 15px;
+    font-size: 12px;
+}
+
+.btn-custom.orange.btn-sm:hover {
+    background-color: #d63e12;
+}
+
+/* Responsive Table */
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Small text */
+.text-muted {
+    font-size: 12px;
+}
+
+/* Info box header */
+.info-box h4 {
+    color: #1e1e1e;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f35525;
+}
+
+/* Button Styles */
+.main-button {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn-custom {
+    font-size: 12px;
+    padding: 8px 16px;
+    background-color: #f35525;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 32px;
+}
+
+.btn-custom:hover {
+    background-color: #d63e12;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.btn-custom i {
+    font-size: 12px;
+}
+
+/* Fix form display for delete button */
+.main-button form {
+    margin: 0;
+}
+
+.main-button form button {
+    height: 32px;
+}
+
+/* Ensure consistent height across all buttons */
+.main-button > * {
+    height: 32px;
+}
+
+/* Add subtle transition effects */
+.btn-custom {
+    transition: all 0.3s ease;
+}
+
+/* Add disabled state */
+.btn-custom:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Add focus state */
+.btn-custom:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(243, 85, 37, 0.3);
+}
+
+.btn-custom.blue:focus {
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
+}
+
+.btn-custom.red:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.3);
+}
+
+/* Blue Edit Button */
+.btn-custom.blue {
+    background-color: #2196F3;
+}
+
+.btn-custom.blue:hover {
+    background-color: #1976D2;
+}
+
+/* Red Delete Button */
+.btn-custom.red {
+    background-color: #dc3545;
+}
+
+.btn-custom.red:hover {
+    background-color: #c82333;
+}
