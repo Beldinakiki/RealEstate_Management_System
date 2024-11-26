@@ -1,0 +1,402 @@
+{% extends "admin/base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Users</h6>
+                        <h2 class="mb-0">{{ users|length }}</h2>
+                    </div>
+                    <i class="bi bi-people-fill fs-1 text-primary"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Regular Users</h6>
+                        <h2 class="mb-0">{{ users|selectattr('role', 'equalto', 'user')|list|length }}</h2>
+                    </div>
+                    <i class="bi bi-person-fill fs-1 text-success"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Agents</h6>
+                        <h2 class="mb-0">{{ users|selectattr('role', 'equalto', 'agent')|list|length }}</h2>
+                    </div>
+                    <i class="bi bi-person-badge-fill fs-1 text-warning"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Admins</h6>
+                        <h2 class="mb-0">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h2>
+                    </div>
+                    <i class="bi bi-person-workspace fs-1 text-danger"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">User Management</h5>
+                <div class="d-flex gap-2">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search users...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <select class="form-select" id="roleFilter" style="width: auto;" onchange="filterUsers()">
+                        <option value="all">All Roles</option>
+                        <option value="user">Users</option>
+                        <option value="agent">Agents</option>
+                        <option value="admin">Admins</option>
+                    </select>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="bi bi-person-plus"></i> Add User
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Contact Details</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if user.profile_image %}
+                                            <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" 
+                                                 class="rounded-circle" width="40" height="40">
+                                        {% else %}
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                {{ user.username[0].upper() }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0">{{ user.username }}</h6>
+                                        <small class="text-muted">ID: {{ user.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <i class="bi bi-envelope"></i> {{ user.email }}<br>
+                                    <i class="bi bi-telephone"></i> {{ user.phone_number if user.phone_number else 'N/A' }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'primary' if user.role == 'admin' else 'success' if user.role == 'agent' else 'secondary' }}">
+                                    {{ user.role.capitalize() }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if user.verified else 'warning' }}">
+                                    {{ 'Active' if user.verified else 'Pending' }}
+                                </span>
+                            </td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editUser({{ user.id }})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    {% if user.id != current_user.id %}
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteUser({{ user.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm" action="{{ url_for('admin_add_user') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" name="phone_number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role" required>
+                            <option value="user">User</option>
+                            <option value="agent">Agent</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" name="verified" id="addVerified">
+                        <label class="form-check-label" for="addVerified">Verified</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm" action="" method="POST">
+                    <input type="hidden" name="user_id" id="editUserId">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" id="editUsername" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" id="editEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role" id="editRole" required>
+                            <option value="user">User</option>
+                            <option value="agent">Agent</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" name="verified" id="editVerified">
+                        <label class="form-check-label" for="editVerified">Verified</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Edit user functionality
+function editUser(userId) {
+    fetch(`/admin/user/${userId}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('editUserId').value = data.user.id;
+            document.getElementById('editUsername').value = data.user.username;
+            document.getElementById('editEmail').value = data.user.email;
+            document.getElementById('editRole').value = data.user.role;
+            document.getElementById('editVerified').checked = data.user.verified;
+            
+            const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            editModal.show();
+        } else {
+            alert(data.message || 'Error loading user data');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error loading user data');
+    });
+}
+
+// Delete user functionality
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        fetch(`/admin/user/${userId}/delete`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Error deleting user');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting user');
+        });
+    }
+}
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function(e) {
+    const searchText = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchText) ? '' : 'none';
+    });
+});
+
+// Role filter
+document.getElementById('roleFilter').addEventListener('change', function() {
+    filterUsers();
+});
+
+// Form submissions
+document.getElementById('addUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              location.reload();
+          } else {
+              alert(data.message);
+          }
+      });
+});
+
+document.getElementById('editUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const userId = document.getElementById('editUserId').value;
+
+    fetch(`/admin/user/${userId}/edit`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error updating user');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating user');
+    });
+});
+
+function filterUsers() {
+    const selectedRole = document.getElementById('roleFilter').value;
+    const userRows = document.querySelectorAll('table tbody tr');
+    
+    console.log('Selected Role:', selectedRole);
+    
+    userRows.forEach(row => {
+        // Find the role badge span within the role column (3rd column)
+        const roleCell = row.querySelector('td:nth-child(3)');
+        const roleBadge = roleCell.querySelector('.badge');
+        const roleText = roleBadge.textContent.trim().toLowerCase();
+        
+        console.log('Row Role:', roleText);
+        
+        if (selectedRole === 'all') {
+            row.style.display = '';
+        } else if (roleText === selectedRole) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Count visible rows
+    const visibleRows = Array.from(userRows).filter(row => row.style.display !== 'none');
+    console.log('Visible Rows:', visibleRows.length);
+}
+
+// Add this to help debug the table structure
+document.addEventListener('DOMContentLoaded', () => {
+    const table = document.querySelector('table');
+    const rows = table.querySelectorAll('tbody tr');
+    
+    console.log('Table Structure:');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const roleCell = cells[3]; // Assuming role is in the 4th column
+        if (roleCell) {
+            console.log('Role in row:', roleCell.textContent.trim());
+        }
+    });
+    
+    filterUsers();
+});
+</script>
+{% endblock %}
+
+

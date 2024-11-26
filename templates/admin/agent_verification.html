@@ -1,0 +1,286 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Agent Verification{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Agents</h6>
+                        <h2 class="mb-0">{{ agents|length }}</h2>
+                    </div>
+                    <i class="bi bi-people-fill fs-1 text-primary"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Verified Agents</h6>
+                        <h2 class="mb-0">{{ agents|selectattr('verified', 'true')|list|length }}</h2>
+                    </div>
+                    <i class="bi bi-patch-check-fill fs-1 text-success"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Pending Verification</h6>
+                        <h2 class="mb-0">{{ agents|selectattr('verified', 'false')|list|length }}</h2>
+                    </div>
+                    <i class="bi bi-hourglass-split fs-1 text-warning"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Properties</h6>
+                        <h2 class="mb-0">{{ total_listings }}</h2>
+                    </div>
+                    <i class="bi bi-house-door fs-1 text-danger"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Agent Verification Requests</h5>
+                <div class="d-flex gap-2">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search agents...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <select class="form-select" id="statusFilter" style="width: auto;">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Contact Details</th>
+                            <th>National ID</th>
+                            <th>Documents</th>
+                            <th>Status</th>
+                            <th>Properties</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agent in agents %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if agent.profile_image %}
+                                            <img src="{{ url_for('static', filename='uploads/' + agent.profile_image) }}" 
+                                                 class="rounded-circle" width="40" height="40">
+                                        {% else %}
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                {{ agent.username[0].upper() }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0">{{ agent.username }}</h6>
+                                        <small class="text-muted">Joined {{ agent.created_at.strftime('%Y-%m-%d') }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <i class="bi bi-envelope"></i> {{ agent.email }}<br>
+                                    <i class="bi bi-telephone"></i> {{ agent.phone_number }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if agent.id_proof_file %}
+                                    <a href="{{ url_for('static', filename='uploads/' + agent.id_proof_file) }}" 
+                                       class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="bi bi-file-earmark-text"></i> View ID
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-danger">Not Uploaded</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if agent.license_file %}
+                                    <a href="{{ url_for('static', filename='uploads/' + agent.license_file) }}" 
+                                       class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="bi bi-file-earmark-text"></i> View License
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-danger">Not Uploaded</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if agent.verified else 'warning' }}">
+                                    {{ 'Verified' if agent.verified else 'Pending' }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" 
+                                        onclick="viewProperties({{ agent.id }})">
+                                    <i class="bi bi-house"></i> View Properties
+                                </button>
+                            </td>
+                            <td>
+                                {% if not agent.verified %}
+                                    <button class="btn btn-sm btn-success" 
+                                            onclick="verifyAgent({{ agent.id }})">
+                                        <i class="bi bi-check-lg"></i> Verify
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="rejectAgent({{ agent.id }})">
+                                        <i class="bi bi-x-lg"></i> Reject
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-warning" 
+                                            onclick="suspendAgent({{ agent.id }})">
+                                        <i class="bi bi-pause-fill"></i> Suspend
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Properties Modal -->
+<div class="modal fade" id="propertiesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agent Properties</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="propertiesList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function viewProperties(agentId) {
+    fetch(`/admin/agent-properties/${agentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const propertiesList = document.getElementById('propertiesList');
+                propertiesList.innerHTML = data.properties.map(p => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${p.title}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-geo-alt"></i> ${p.location}<br>
+                                    <i class="bi bi-cash"></i> KSh ${p.price}<br>
+                                    <i class="bi bi-calendar"></i> Listed on ${p.created_at}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                `).join('');
+                new bootstrap.Modal(document.getElementById('propertiesModal')).show();
+            }
+        });
+}
+
+function verifyAgent(agentId) {
+    if (confirm('Are you sure you want to verify this agent?')) {
+        fetch(`/admin/verify-agent/${agentId}`, {
+            method: 'POST',
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              }
+          });
+    }
+}
+
+function rejectAgent(agentId) {
+    if (confirm('Are you sure you want to reject this agent?')) {
+        fetch(`/admin/reject-agent/${agentId}`, {
+            method: 'POST',
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              }
+          });
+    }
+}
+
+function suspendAgent(agentId) {
+    if (confirm('Are you sure you want to suspend this agent?')) {
+        fetch(`/admin/suspend-agent/${agentId}`, {
+            method: 'POST',
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              }
+          });
+    }
+}
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function(e) {
+    const searchText = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchText) ? '' : 'none';
+    });
+});
+
+// Status filter
+document.getElementById('statusFilter').addEventListener('change', function(e) {
+    const status = e.target.value;
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all') {
+            row.style.display = '';
+        } else {
+            const badgeText = row.querySelector('.badge').textContent.toLowerCase();
+            row.style.display = badgeText === status ? '' : 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

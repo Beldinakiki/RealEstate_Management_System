@@ -1,0 +1,333 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Analytics & Reports{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .report-section {
+        margin-bottom: 2rem;
+    }
+    .stats-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .small-chart {
+        height: 250px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Analytics & Reports</h2>
+
+    <!-- Market Analysis (External Data) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4>Market Analysis (External Data)</h4>
+            <hr>
+        </div>
+        <!-- Price Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Price Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container small-chart">
+                        <canvas id="priceDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Properties by Location</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="locationDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bedrooms vs Price -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Bedrooms vs Price</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="bedroomsPriceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bathrooms vs Price -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Bathrooms vs Price</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="bathroomsPriceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platform Analytics (System Data) -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Platform Analytics (System Data)</h4>
+            <hr>
+        </div>
+        
+        <!-- User Registration Trends -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">User Registration Trends</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="userRegistrationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Property Listings Trend -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Property Listings Trend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="propertyListingsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Performance -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Agent Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="agentPerformanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Property Type Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Property Types</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="propertyTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// External Data Charts
+// Price Distribution Chart
+new Chart(document.getElementById('priceDistributionChart').getContext('2d'), {
+    type: 'pie',
+    data: {
+        labels: ['Budget (<50k)', 'Mid-Range (50k-100k)', 'Luxury (>100k)'],
+        datasets: [{
+            data: [
+                {{ price_range.budget }},
+                {{ price_range.mid_range }},
+                {{ price_range.luxury }}
+            ],
+            backgroundColor: ['#36A2EB', '#FFCE56', '#FF6384']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Location Distribution Chart
+new Chart(document.getElementById('locationDistributionChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: {{ location_stats.keys()|list|tojson }},
+        datasets: [{
+            label: 'Number of Properties',
+            data: {{ location_stats.values()|list|tojson }},
+            backgroundColor: '#36A2EB'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// System Data Charts
+// User Registration Chart
+new Chart(document.getElementById('userRegistrationChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: {{ monthly_labels|tojson }},
+        datasets: [{
+            label: 'New Users',
+            data: {{ monthly_users|tojson }},
+            borderColor: '#4BC0C0',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Property Listings Chart
+new Chart(document.getElementById('propertyListingsChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: {{ monthly_labels|tojson }},
+        datasets: [{
+            label: 'New Properties',
+            data: {{ monthly_properties|tojson }},
+            borderColor: '#FF9F40',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Agent Performance Chart
+new Chart(document.getElementById('agentPerformanceChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: {{ agent_performance_labels|tojson }},
+        datasets: [{
+            label: 'Properties Listed',
+            data: {{ agent_performance_data|tojson }},
+            backgroundColor: '#36A2EB'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Property Type Chart
+new Chart(document.getElementById('propertyTypeChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ property_types_labels|tojson }},
+        datasets: [{
+            data: {{ property_types_data|tojson }},
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Bedrooms vs Price Chart
+new Chart(document.getElementById('bedroomsPriceChart').getContext('2d'), {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Properties',
+            data: {{ bedrooms_price_data|tojson }},
+            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Number of Bedrooms'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Price (KSh)'
+                }
+            }
+        }
+    }
+});
+
+// Bathrooms vs Price Chart
+new Chart(document.getElementById('bathroomsPriceChart').getContext('2d'), {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Properties',
+            data: {{ bathrooms_price_data|tojson }},
+            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Number of Bathrooms'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Price (KSh)'
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

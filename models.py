@@ -44,6 +44,7 @@ class Property(db.Model):
     agent_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    
     # Relationship with PropertyDetails
     details = db.relationship('PropertyDetails', backref='property', uselist=False)
     agent = db.relationship('User', backref='properties')

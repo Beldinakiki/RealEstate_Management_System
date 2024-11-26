@@ -98,86 +98,82 @@
         <div class="stats-card">
             <h4>Schedule a Property Visit</h4>
             <p>Interested in viewing a property? Schedule a visit with one of our agents.</p>
-            <a href="#" class="action-button">Schedule Now</a>
+            <a href="{{ url_for('properties') }}" class="action-button">Schedule Now</a>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
         <h2>Search Properties</h2>
-        <form action="{{ url_for('search_properties') }}" method="GET" class="search-form mb-4">
-            <div class="form-group">
-                <input type="text" name="location" class="form-control" placeholder="Location" required>
+        <form action="{{ url_for('get_recommendations') }}" method="GET" class="search-form mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <input type="text" name="location" class="form-control" 
+                               placeholder="Location" 
+                               value="{{ search_params.location or '' }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <select name="property_type" class="form-control">
+                            <option value="">Property Type</option>
+                            <option value="Apartment" {% if search_params.property_type == 'Apartment' %}selected{% endif %}>Apartment</option>
+                            <option value="Maisonettes" {% if search_params.property_type == 'Maisonettes' %}selected{% endif %}>Maisonettes</option>
+                            <option value="Townhouse" {% if search_params.property_type == 'Townhouse' %}selected{% endif %}>Town House</option>
+                            <option value="Penthouse" {% if search_params.property_type == 'Penthouse' %}selected{% endif %}>Penthouse</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <input type="number" name="min_price" class="form-control" placeholder="Min Price" min="0">
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <input type="number" name="min_price" class="form-control" 
+                               placeholder="Min Price" min="0" 
+                               value="{{ search_params.min_price or '' }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <input type="number" name="max_price" class="form-control" 
+                               placeholder="Max Price" min="0" 
+                               value="{{ search_params.max_price or '' }}">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <input type="number" name="max_price" class="form-control" placeholder="Max Price" min="0">
-            </div>
-            <div class="form-group">
-                <select name="property_type" class="form-control">
-                    <option value="">Property Type</option>
-                    <option value="Apartment">Apartment</option>
-                    <option value="House">House</option>
-                    <option value="Commercial">Commercial</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-100" style="background-color: #f35525; border-color: #f35525;">Search</button>
-        </form>
 
-        <!-- Your existing content goes here -->
-        <div class="row mt-4">
-            <div class="col-lg-6">
-                <div class="dashboard-card">
-                    <h4>Properties</h4>
-                    {% if properties %}
-                        <div class="row">
-                            {% for property in properties %}
-                            <div class="col-12 mb-4">
-                                <div class="property-item d-flex">
-                                    <div class="property-image">
-                                        {% if property.image %}
-                                            <img src="{{ url_for('static', filename='uploads/' + property.image) }}" 
-                                                 alt="{{ property.title }}" class="img-fluid" style="width: 120px; height: 90px; object-fit: cover;">
-                                        {% else %}
-                                            <img src="{{ url_for('static', filename='images/default-property.png') }}" 
-                                                 alt="Default Property Image" class="img-fluid" style="width: 120px; height: 90px; object-fit: cover;">
-                                        {% endif %}
-                                    </div>
-                                    <div class="property-info ms-3">
-                                        <h5 class="mb-1">{{ property.title }}</h5>
-                                        <p class="mb-1">KSH {{ "{:,.2f}".format(property.price) }}</p>
-                                        <small class="text-muted">
-                                            {{ property.bedrooms }} beds • {{ property.bathrooms }} baths • {{ property.area }}m²
-                                        </small>
-                                        <div class="mt-2">
-                                            <a href="{{ url_for('property_details', property_id=property.id) }}" 
-                                               class="btn btn-sm btn-outline-primary">View Details</a>
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                                                    data-bs-target="#scheduleVisitModal{{ property.id }}">
-                                                Schedule Visit
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <select name="bedrooms" class="form-control">
+                            <option value="">Number of Bedrooms</option>
+                            <option value="0" {% if search_params.bedrooms == 0 %}selected{% endif %}>Studio</option>
+                            {% for i in range(1, 7) %}
+                            <option value="{{ i }}" {% if search_params.bedrooms == i %}selected{% endif %}>{{ i }} Bedroom{% if i != 1 %}s{% endif %}</option>
                             {% endfor %}
-                        </div>
-                    {% else %}
-                        <p>No properties available at the moment.</p>
-                    {% endif %}
+                            <option value="7" {% if search_params.bedrooms|int >= 7 %}selected{% endif %}>7+ Bedrooms</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <select name="bathrooms" class="form-control">
+                            <option value="">Number of Bathrooms</option>
+                            {% for i in range(1, 7) %}
+                            <option value="{{ i }}" {% if search_params.bathrooms == i %}selected{% endif %}>{{ i }} Bathroom{% if i != 1 %}s{% endif %}</option>
+                            {% endfor %}
+                            <option value="7" {% if search_params.bathrooms >= 7 %}selected{% endif %}>7+ Bathrooms</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent Activities -->
-            <div class="col-lg-6">
-                <div class="dashboard-card">
-                    <h4>Recent Activities</h4>
-                    <p>No recent activities to display.</p>
-                </div>
-            </div>
-        </div>
+            <button type="submit" class="btn btn-primary w-100" style="background-color: #f35525; border-color: #f35525;">
+                <i class="fas fa-search me-2"></i>Search Properties
+            </button>
+        </form>
 
         <!-- Price Statistics -->
         {% if price_stats %}
@@ -223,5 +219,21 @@
     <!-- Include your scripts -->
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        document.querySelector('.search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const searchParams = new URLSearchParams();
+            
+            for (let pair of formData.entries()) {
+                if (pair[1]) {  // Only add non-empty values
+                    searchParams.append(pair[0], pair[1]);
+                }
+            }
+            
+            window.location.href = `${window.location.pathname}?${searchParams.toString()}`;
+        });
+        </script>
 </body>
 </html> 

@@ -2,108 +2,108 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics.pairwise import cosine_similarity
+import traceback
 
 class RentalRecommender:
     def __init__(self, csv_path='rent_apts.csv'):
-        self.csv_path = csv_path
-        self.df = None
-        self.scaler = StandardScaler()
-        self.features_scaled = None
-        self.load_and_prepare_data()
-
-    def load_and_prepare_data(self):
-        """Load and preprocess the rental dataset"""
         try:
-            # Read CSV file
-            self.df = pd.read_csv(self.csv_path)
+            self.df = pd.read_csv(csv_path)
+            print(f"Loaded {len(self.df)} records from {csv_path}")
+            print("Sample of raw data:")
+            print(self.df.head())
+            print("\nData types before conversion:", self.df.dtypes)
             
-            # Clean price column - Extract numeric value from price string
-            self.df['Price'] = self.df['Price'].apply(lambda x: float(str(x).replace('KSh ', '').replace(',', '')) if pd.notnull(x) else np.nan)
+            # Ensure required columns exist
+            required_columns = ['Price', 'Bedrooms', 'Bathrooms', 'Neighborhood']
+            missing_columns = [col for col in required_columns if col not in self.df.columns]
+            if missing_columns:
+                raise ValueError(f"Missing required columns: {missing_columns}")
             
-            # Convert columns to numeric, replacing invalid values with NaN
+            # Strip any currency symbols and commas from Price
+            self.df['Price'] = self.df['Price'].astype(str).str.replace('[$,KSh]', '', regex=True)
+            
+            # Force convert to numeric, replacing errors with NaN
+            self.df['Price'] = pd.to_numeric(self.df['Price'], errors='coerce')
             self.df['Bedrooms'] = pd.to_numeric(self.df['Bedrooms'], errors='coerce')
             self.df['Bathrooms'] = pd.to_numeric(self.df['Bathrooms'], errors='coerce')
-            self.df['sq_mtrs'] = pd.to_numeric(self.df['sq_mtrs'], errors='coerce')
             
-            # Fill NaN values with median values
+            print("\nData types after conversion:", self.df.dtypes)
+            print("\nSummary statistics:")
+            print(self.df[['Price', 'Bedrooms', 'Bathrooms']].describe())
+            
+            # Fill NaN values
+            self.df['Price'] = self.df['Price'].fillna(self.df['Price'].median())
             self.df['Bedrooms'] = self.df['Bedrooms'].fillna(self.df['Bedrooms'].median())
             self.df['Bathrooms'] = self.df['Bathrooms'].fillna(self.df['Bathrooms'].median())
-            self.df['sq_mtrs'] = self.df['sq_mtrs'].fillna(self.df['sq_mtrs'].median())
-            self.df['Price'] = self.df['Price'].fillna(self.df['Price'].median())
             
-            # Create and scale features
-            features = self.df[['Price', 'Bedrooms', 'Bathrooms', 'sq_mtrs']].values
+            # Prepare features
+            features = self.df[['Price', 'Bedrooms', 'Bathrooms']].values
+            self.scaler = StandardScaler()
             self.features_scaled = self.scaler.fit_transform(features)
             
         except Exception as e:
-            print(f"Error loading data: {str(e)}")
+            print(f"Error in initialization: {str(e)}")
             raise
 
     def get_recommendations(self, location=None, price=None, bedrooms=None, bathrooms=None, num_recommendations=5):
-        """Get property recommendations based on input criteria"""
         try:
-            # Use median values if not provided
-            if price is None:
-                price = self.df['Price'].median()
-            if bedrooms is None:
-                bedrooms = self.df['Bedrooms'].median()
-            if bathrooms is None:
-                bathrooms = self.df['Bathrooms'].median()
-
-            # Create query point
-            query = np.array([[
-                price,
-                bedrooms,
-                bathrooms,
-                self.df['sq_mtrs'].median()  # Use median sq_mtrs as default
-            ]])
+            print(f"\nGetting recommendations with parameters:")
+            print(f"Location: {location}")
+            print(f"Price: {price}")
+            print(f"Bedrooms: {bedrooms}")
+            print(f"Bathrooms: {bathrooms}")
             
-            # Scale query
+            # Convert inputs to float, using median if None
+            try:
+                price = float(price) if price is not None else float(self.df['Price'].median())
+                bedrooms = float(bedrooms) if bedrooms is not None else float(self.df['Bedrooms'].median())
+                bathrooms = float(bathrooms) if bathrooms is not None else float(self.df['Bathrooms'].median())
+            except (ValueError, TypeError) as e:
+                print(f"Error converting inputs: {str(e)}")
+                price = float(self.df['Price'].median())
+                bedrooms = float(self.df['Bedrooms'].median())
+                bathrooms = float(self.df['Bathrooms'].median())
+            
+            print(f"\nProcessed parameters:")
+            print(f"Price: {price}")
+            print(f"Bedrooms: {bedrooms}")
+            print(f"Bathrooms: {bathrooms}")
+            
+            # Create query point
+            query = np.array([[price, bedrooms, bathrooms]], dtype=float)
             query_scaled = self.scaler.transform(query)
             
             # Calculate similarities
             similarities = cosine_similarity(query_scaled, self.features_scaled)
-            
-            # Get top similar properties
             similar_indices = similarities[0].argsort()[-num_recommendations:][::-1]
             
-            # Filter by location if provided
-            recommendations = self.df.iloc[similar_indices].copy()
-            if location:
-                location = location.lower()
-                location_mask = recommendations['Neighborhood'].str.lower().str.contains(location, na=False)
-                if location_mask.any():
-                    recommendations = recommendations[location_mask]
+            # Get recommendations
+            recommendations = []
+            for idx, score in zip(similar_indices, similarities[0][similar_indices]):
+                rec = {
+                    'price': float(self.df.iloc[idx]['Price']),
+                    'bedrooms': int(self.df.iloc[idx]['Bedrooms']),
+                    'bathrooms': int(self.df.iloc[idx]['Bathrooms']),
+                    'neighborhood': str(self.df.iloc[idx].get('Neighborhood', '')),
+                    'agency': str(self.df.iloc[idx].get('Agency', 'Unknown')),  # Add agency field
+                    'similarity_score': round(float(score) * 100, 2)
+                }
+                recommendations.append(rec)
             
-            # Add similarity scores
-            recommendations['similarity_score'] = similarities[0][similar_indices]
+            print(f"\nFound {len(recommendations)} recommendations")
+            if recommendations:
+                print("Sample recommendation:", recommendations[0])
             
-            # Format the output
-            return self._format_recommendations(recommendations)
+            return recommendations
             
         except Exception as e:
-            print(f"Error getting recommendations: {str(e)}")
+            print(f"Error in get_recommendations: {str(e)}")
+            print("Stack trace:", traceback.format_exc())
             return []
-
-    def _format_recommendations(self, recommendations):
-        """Format recommendations for output"""
-        formatted = []
-        for _, row in recommendations.iterrows():
-            formatted.append({
-                'agency': row['Agency'],
-                'neighborhood': row['Neighborhood'],
-                'price': float(row['Price']),
-                'bedrooms': int(row['Bedrooms']),
-                'bathrooms': int(row['Bathrooms']),
-                'sq_mtrs': float(row['sq_mtrs']),
-                'similarity_score': round(float(row['similarity_score'] * 100), 2),
-                'link': row['link']
-            })
-        return formatted
 
     def get_price_range(self, neighborhood):
         """Get price statistics for a neighborhood"""
-        if neighborhood:
+        try:
             neighborhood_data = self.df[
                 self.df['Neighborhood'].str.lower().str.contains(neighborhood.lower(), na=False)
             ]['Price']
@@ -114,4 +114,6 @@ class RentalRecommender:
                     'avg_price': float(neighborhood_data.mean()),
                     'median_price': float(neighborhood_data.median())
                 }
+        except Exception:
+            pass
         return None
