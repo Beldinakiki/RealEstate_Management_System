@@ -9,231 +9,420 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/templatemo-villa-agency.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/owl.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animate.css') }}">
-    <style>
-        body {
-            background-color: #f4f4f4; /* Light background for the entire page */
-            font-family: 'Arial', sans-serif; /* Consistent font */
-            padding-top: 70px; /* Add padding to prevent content from being hidden behind the navbar */
-        }
-        .sidebar {
-            background-color: #ffffff; /* White background for the sidebar */
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            height: 100vh; /* Full height */
-            position: fixed; /* Fixed sidebar */
-            width: 250px; /* Width of the sidebar */
-            overflow-y: auto; /* Scroll if content overflows */
-        }
-        .main-content {
-            margin-left: 270px; /* Space for the sidebar */
-            padding: 20px;
-        }
-        .stats-card {
-            background-color: #f8f9fa; /* Card background */
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-        }
-        .action-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #f35525; /* Primary button color */
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-        .action-button:hover {
-            background-color: #e04012; /* Darker shade on hover */
-        }
-        .search-form {
-            background-color: #ffffff; /* White background for the search form */
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .search-form .form-control {
-            margin-bottom: 15px; /* Space between form fields */
-        }
-        .dashboard-card {
-            background-color: #ffffff; /* White background for dashboard cards */
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        h2, h4 {
-            color: #1e1e1e; /* Dark text color for headings */
-        }
-        .property-item {
-            border: 1px solid #e0e0e0; /* Light border for property items */
-            border-radius: 8px;
-            padding: 10px;
-            background-color: #ffffff; /* White background for property items */
-            transition: box-shadow 0.3s;
-        }
-        .property-item:hover {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Shadow on hover */
-        }
-    </style>
 </head>
 <body>
     {% include 'nav.html' %}
 
-   <!-- Sidebar -->
-    <div class="sidebar">
-        <h4>Dashboard Stats</h4>
-        <div class="stats-card">
-            <h3>0</h3>
-            <p>Saved Properties</p>
-        </div>
-        <div class="stats-card">
-            <h3>0</h3>
-            <p>Scheduled Visits</p>
-        </div>
-
-        
-        <div class="stats-card">
-            <h4>Schedule a Property Visit</h4>
-            <p>Interested in viewing a property? Schedule a visit with one of our agents.</p>
-            <a href="{{ url_for('properties') }}" class="action-button">Schedule Now</a>
+    <div class="page-heading header-text">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <span class="breadcrumb"><a href="#">Home</a> / User Dashboard</span>
+                    <h3>User Dashboard</h3>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <h2>Search Properties</h2>
-        <form action="{{ url_for('get_recommendations') }}" method="GET" class="search-form mb-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <input type="text" name="location" class="form-control" 
-                               placeholder="Location" 
-                               value="{{ search_params.location or '' }}">
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="sidebar">
+                    <h4>Dashboard Stats</h4>
+                    <div class="stats-card">
+                        <h3>{{ total_saved }}</h3>
+                        <p>Saved Properties</p>
+                        {% if total_saved > 0 %}
+                            <a href="{{ url_for('user_dashboard', tab='saved') }}" class="action-button">
+                                <i class="fa fa-heart"></i> View Saved
+                            </a>
+                        {% else %}
+                            <p class="text-muted small">No saved properties yet</p>
+                            <a href="{{ url_for('properties') }}" class="action-button">
+                                <i class="fa fa-search"></i> Browse Properties
+                            </a>
+                        {% endif %}
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <select name="property_type" class="form-control">
-                            <option value="">Property Type</option>
-                            <option value="Apartment" {% if search_params.property_type == 'Apartment' %}selected{% endif %}>Apartment</option>
-                            <option value="Maisonettes" {% if search_params.property_type == 'Maisonettes' %}selected{% endif %}>Maisonettes</option>
-                            <option value="Townhouse" {% if search_params.property_type == 'Townhouse' %}selected{% endif %}>Town House</option>
-                            <option value="Penthouse" {% if search_params.property_type == 'Penthouse' %}selected{% endif %}>Penthouse</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <input type="number" name="min_price" class="form-control" 
-                               placeholder="Min Price" min="0" 
-                               value="{{ search_params.min_price or '' }}">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <input type="number" name="max_price" class="form-control" 
-                               placeholder="Max Price" min="0" 
-                               value="{{ search_params.max_price or '' }}">
+                    <div class="stats-card">
+                        <h3>{{ total_visits }}</h3>
+                        <p>Scheduled Visits</p>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <select name="bedrooms" class="form-control">
-                            <option value="">Number of Bedrooms</option>
-                            <option value="0" {% if search_params.bedrooms == 0 %}selected{% endif %}>Studio</option>
-                            {% for i in range(1, 7) %}
-                            <option value="{{ i }}" {% if search_params.bedrooms == i %}selected{% endif %}>{{ i }} Bedroom{% if i != 1 %}s{% endif %}</option>
-                            {% endfor %}
-                            <option value="7" {% if search_params.bedrooms|int >= 7 %}selected{% endif %}>7+ Bedrooms</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <select name="bathrooms" class="form-control">
-                            <option value="">Number of Bathrooms</option>
-                            {% for i in range(1, 7) %}
-                            <option value="{{ i }}" {% if search_params.bathrooms == i %}selected{% endif %}>{{ i }} Bathroom{% if i != 1 %}s{% endif %}</option>
-                            {% endfor %}
-                            <option value="7" {% if search_params.bathrooms >= 7 %}selected{% endif %}>7+ Bathrooms</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100" style="background-color: #f35525; border-color: #f35525;">
-                <i class="fas fa-search me-2"></i>Search Properties
-            </button>
-        </form>
-
-        <!-- Price Statistics -->
-        {% if price_stats %}
-        <div class="stats-card">
-            <h5>Price Statistics for {{ search_params.location }}</h5>
-            <p>Average Price: KSh {{ "{:,.2f}".format(price_stats.avg_price) }}</p>
-            <p>Price Range: KSh {{ "{:,.2f}".format(price_stats.min_price) }} - {{ "{:,.2f}".format(price_stats.max_price) }}</p>
-        </div>
-        {% endif %}
-
-        <!-- Recommended Properties -->
-        <div class="dashboard-card">
-            <h4>Recommended Properties</h4>
-            {% if recommended_properties %}
-                <div class="row">
-                    {% for property in recommended_properties %}
-                    <div class="col-md-4 mb-4">
-                        <div class="property-item">
-                            <div class="property-info p-3">
-                                <h5 class="mb-1">{{ property.agency }}</h5>
-                                <p class="mb-1">{{ property.neighborhood }}</p>
-                                <p class="mb-1">KSh {{ "{:,.2f}".format(property.price) }}</p>
-                                <small class="text-muted">
-                                    {{ property.bedrooms }} beds • {{ property.bathrooms }} baths 
-                                    {% if property.sq_mtrs %}
-                                    • {{ property.sq_mtrs }}m²
+            <!-- Main Content -->
+            <div class="col-md-9">
+                {% if active_tab == 'saved' and saved_properties %}
+                    <div class="saved-properties">
+                        <h3>My Saved Properties</h3>
+                        <div class="row">
+                            {% for property in saved_properties %}
+                            <div class="col-md-6 mb-4">
+                                <div class="item">
+                                    {% if property.image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + property.image) }}" alt="{{ property.title }}">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='images/default-property.png') }}" alt="Default Property Image">
                                     {% endif %}
-                                </small>
-                                <div class="mt-2">
-                                    <span class="badge bg-success">{{ property.similarity_score }}% Match</span>
+                                    <span class="category">{{ property.type }}</span>
+                                    <h6>KSH {{ "{:,.2f}".format(property.price) }}</h6>
+                                    <h4>{{ property.title }}</h4>
+                                    <ul>
+                                        <li>Bedrooms: <span>{{ property.bedrooms }}</span></li>
+                                        <li>Bathrooms: <span>{{ property.bathrooms }}</span></li>
+                                        <li>Area: <span>{{ property.area }}m²</span></li>
+                                        {% if property.details %}
+                                        <li>Parking: <span>{{ property.details.parking }}</span></li>
+                                        {% endif %}
+                                    </ul>
+                                    <div class="main-button d-flex gap-2">
+                                        <button class="btn-custom" onclick="window.location.href='{{ url_for('properties') }}'">
+                                            <i class="fa fa-eye"></i> View Details
+                                        </button>
+                                        <button class="btn-custom save-property-btn" 
+                                                data-property-id="{{ property.id }}"
+                                                onclick="toggleSaveProperty(this, {{ property.id }})">
+                                            <i class="fa fa-heart"></i> <span>Unsave</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% elif active_tab == 'saved' %}
+                    <div class="no-properties text-center py-5">
+                        <i class="fa fa-heart-broken fa-3x mb-3"></i>
+                        <h4>No Saved Properties</h4>
+                        <p>Properties you save will appear here.</p>
+                        <a href="{{ url_for('properties') }}" class="btn-custom mt-3">
+                            <i class="fa fa-search"></i> Browse Properties
+                        </a>
+                    </div>
+                {% else %}
+                    <!-- Default Dashboard Content -->
+                    <div class="dashboard-welcome">
+                        <h2>Welcome, {{ current_user.username }}!</h2>
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-4">
+                                <div class="dashboard-card">
+                                    <h4><i class="fa fa-heart"></i> Saved Properties</h4>
+                                    <p>You have saved {{ total_saved }} properties</p>
+                                    {% if total_saved > 0 %}
+                                        <a href="{{ url_for('user_dashboard', tab='saved') }}" class="btn-custom">
+                                            View Saved Properties
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="dashboard-card">
+                                    <h4><i class="fa fa-calendar"></i> Property Visits</h4>
+                                    <p>You have {{ total_visits }} scheduled visits</p>
+                                    {% if total_visits > 0 %}
+                                        <a href="#" class="btn-custom">View Scheduled Visits</a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Search Form -->
+                        <div class="property-search mt-5">
+                            <h3>Search Properties</h3>
+                            <form action="{{ url_for('user_dashboard') }}" method="GET" class="search-form mb-4">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="location">Location</label>
+                                        <input type="text" name="location" id="location" class="form-control" 
+                                               placeholder="e.g., Westlands, Kilimani" value="{{ search_params.get('location', '') }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="property_type">Property Type</label>
+                                        <select name="property_type" id="property_type" class="form-control">
+                                            <option value="">All Types</option>
+                                            <option value="Apartment" {% if search_params.get('property_type') == 'Apartment' %}selected{% endif %}>Apartment</option>
+                                            <option value="House" {% if search_params.get('property_type') == 'House' %}selected{% endif %}>House</option>
+                                            <option value="Villa" {% if search_params.get('property_type') == 'Villa' %}selected{% endif %}>Villa</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="min_price">Min Price (KSH)</label>
+                                        <input type="number" name="min_price" id="min_price" class="form-control" 
+                                               placeholder="50000" value="{{ search_params.get('min_price', '') }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="max_price">Max Price (KSH)</label>
+                                        <input type="number" name="max_price" id="max_price" class="form-control" 
+                                               placeholder="100000" value="{{ search_params.get('max_price', '') }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bedrooms">Bedrooms</label>
+                                        <select name="bedrooms" id="bedrooms" class="form-control">
+                                            <option value="">Any</option>
+                                            {% for i in range(1, 7) %}
+                                                <option value="{{ i }}" {% if search_params.get('bedrooms') == i %}selected{% endif %}>
+                                                    {{ i }}+ Bedrooms
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bathrooms">Bathrooms</label>
+                                        <select name="bathrooms" id="bathrooms" class="form-control">
+                                            <option value="">Any</option>
+                                            {% for i in range(1, 5) %}
+                                                <option value="{{ i }}" {% if search_params.get('bathrooms') == i %}selected{% endif %}>
+                                                    {{ i }}+ Bathrooms
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary w-100" style="background-color: #f35525; border-color: #f35525;">
+                                            <i class="fas fa-search me-2"></i>Search Properties
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Price Statistics -->
+                            {% if price_stats %}
+                                <div class="stats-card">
+                                    <h5>Price Statistics for {{ search_params.location }}</h5>
+                                    <p>Average Price: KSh {{ "{:,.2f}".format(price_stats.avg_price) }}</p>
+                                    <p>Price Range: KSh {{ "{:,.2f}".format(price_stats.min_price) }} - {{ "{:,.2f}".format(price_stats.max_price) }}</p>
+                                </div>
+                            {% endif %}
+
+                            <!-- Recommended Properties -->
+                            <div class="dashboard-card">
+                                <h4>Recommended Properties</h4>
+                                {% if recommended_properties %}
+                                    <div class="row">
+                                        {% for property in recommended_properties %}
+                                        <div class="col-md-4 mb-4">
+                                            <div class="property-item">
+                                                <div class="property-info p-3">
+                                                    <h5 class="mb-1">{{ property.agency }}</h5>
+                                                    <p class="mb-1">{{ property.neighborhood }}</p>
+                                                    <p class="mb-1">KSh {{ "{:,.2f}".format(property.price) }}</p>
+                                                    <small class="text-muted">
+                                                        {{ property.bedrooms }} beds • {{ property.bathrooms }} baths 
+                                                        {% if property.sq_mtrs %}
+                                                        • {{ property.sq_mtrs }}m²
+                                                        {% endif %}
+                                                    </small>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-success">{{ property.similarity_score }}% Match</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p>No recommendations available.</p>
+                                {% endif %}
+                            </div>
+
+                            
+                        </div>
                     </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>No recommendations available.</p>
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- Include your scripts -->
+    <style>
+    .dashboard-welcome {
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-card {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .dashboard-card h4 {
+        color: #f35525;
+        margin-bottom: 15px;
+    }
+
+    .dashboard-card i {
+        margin-right: 10px;
+    }
+
+    .quick-actions {
+        margin-top: 30px;
+    }
+
+    .action-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        display: block;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        height: 100%;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        text-decoration: none;
+        color: #f35525;
+    }
+
+    .action-card i {
+        font-size: 2em;
+        color: #f35525;
+        margin-bottom: 15px;
+    }
+
+    .action-card h5 {
+        margin: 10px 0;
+        color: #333;
+    }
+
+    .action-card p {
+        color: #666;
+        font-size: 0.9em;
+        margin: 0;
+    }
+
+    .sidebar {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-card {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .action-button {
+        display: inline-block;
+        padding: 8px 15px;
+        background-color: #f35525;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+
+    .action-button:hover {
+        background-color: #e04012;
+        color: white;
+        text-decoration: none;
+    }
+
+    .property-search {
+        background: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .property-search h3 {
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .search-form label {
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .search-form .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px 12px;
+        transition: border-color 0.3s ease;
+    }
+
+    .search-form .form-control:focus {
+        border-color: #f35525;
+        box-shadow: 0 0 0 0.2rem rgba(243, 85, 37, 0.25);
+    }
+
+    .search-form button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1em;
+        margin-top: 10px;
+    }
+
+    .search-form button[type="submit"] i {
+        margin-right: 8px;
+    }
+
+    .search-results {
+        background: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .search-results h3 {
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .search-results .item {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .search-results .item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .alert-info {
+        background-color: #e1f5fe;
+        border: 1px solid #b3e5fc;
+        color: #0288d1;
+    }
+    </style>
+
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script>
-        document.querySelector('.search-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const searchParams = new URLSearchParams();
-            
-            for (let pair of formData.entries()) {
-                if (pair[1]) {  // Only add non-empty values
-                    searchParams.append(pair[0], pair[1]);
-                }
-            }
-            
-            window.location.href = `${window.location.pathname}?${searchParams.toString()}`;
-        });
-        </script>
+    <script src="{{ url_for('static', filename='js/owl.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/imagesloaded.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
 </body>
 </html> 

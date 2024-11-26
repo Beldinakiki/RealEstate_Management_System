@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>My Saved Properties</h2>
+    
+    {% if properties %}
+        <div class="row">
+            {% for property in properties %}
+                <!-- Use the same property card structure as in properties.html -->
+                <div class="col-md-4 mb-4">
+                    <!-- Copy the property card structure from properties.html -->
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <h3>No saved properties yet</h3>
+            <p>Properties you save will appear here.</p>
+            <a href="{{ url_for('properties') }}" class="btn btn-primary mt-3">
+                Browse Properties
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

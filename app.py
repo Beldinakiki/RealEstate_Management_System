@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, url_for, jsonify, send_file, make_response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Property, PropertyDetails, ScheduledVisit, Contact
+from models import db, User, Property, PropertyDetails, ScheduledVisit, Contact, Rating, SavedProperty
 from functools import wraps
 from flask_migrate import Migrate
 import os
@@ -22,6 +22,7 @@ import io
 import csv
 import xlsxwriter
 import pdfkit  # You'll need to install: pip install pdfkit
+from fuzzywuzzy import fuzz
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -562,49 +563,95 @@ def agent_dashboard():
                          scheduled_visits=scheduled_visits)
 
 
-@app.route('/user_dashboard')
+@app.route('/user/dashboard')
+@app.route('/user/dashboard/<tab>')
 @login_required
-def user_dashboard():
+def user_dashboard(tab='stats'):
     if current_user.role != 'user':
         flash('Access denied.', 'error')
         return redirect(url_for('home'))
-    
-    # Get all properties for display
-    properties = Property.query.all()
-    
-    # Get user's saved properties and scheduled visits
-    saved_properties = Property.query.all()  # Replace with actual saved properties logic
-    scheduled_visits = ScheduledVisit.query.filter_by(user_id=current_user.id).all()
-    
-    # Get search parameters
-    search_params = {
-        'location': request.args.get('location', ''),
-        'property_type': request.args.get('property_type', ''),
-        'min_price': request.args.get('min_price', ''),
-        'max_price': request.args.get('max_price', ''),
-        'bedrooms': int(request.args.get('bedrooms', 0)) if request.args.get('bedrooms', '').isdigit() else 0,
-        'bathrooms': int(request.args.get('bathrooms', 0)) if request.args.get('bathrooms', '').isdigit() else 0
-    }
-    
-    # Get recommendations based on search params if they exist
-    recommended_properties = []
-    if any(search_params.values()):
-        try:
-            response = get_recommendations()
-            if response[0].status_code == 200:
-                recommended_properties = response[0].json['data']
-        except Exception as e:
-            print(f"Error getting recommendations: {str(e)}")
-    else:
-        # Default recommendations
-        recommended_properties = properties[:5]
-    
-    return render_template('user/dashboard.html', 
-                         properties=properties,
-                         search_params=search_params,
-                         recommended_properties=recommended_properties,
-                         saved_properties=saved_properties,
-                         scheduled_visits=scheduled_visits)
+
+    try:
+        # Get search parameters
+        search_params = {
+            'location': request.args.get('location', ''),
+            'min_price': request.args.get('min_price', ''),
+            'max_price': request.args.get('max_price', ''),
+            'bedrooms': request.args.get('bedrooms', ''),
+            'bathrooms': request.args.get('bathrooms', '')
+        }
+
+        # Get user's saved properties and visits
+        saved_properties = Property.query.join(SavedProperty).filter(SavedProperty.user_id == current_user.id).all()
+        scheduled_visits = ScheduledVisit.query.filter_by(user_id=current_user.id).all()
+        total_saved = len(saved_properties)
+        total_visits = len(scheduled_visits)
+
+        # Get recommendations if search parameters exist
+        recommended_properties = []
+        if any(search_params.values()):
+            try:
+                # Convert parameters for recommender
+                price = None
+                if search_params['min_price'] and search_params['max_price']:
+                    try:
+                        min_p = float(search_params['min_price'])
+                        max_p = float(search_params['max_price'])
+                        price = (min_p + max_p) / 2
+                    except (ValueError, TypeError):
+                        price = None
+
+                # Convert bedrooms and bathrooms
+                try:
+                    bedrooms = int(search_params['bedrooms']) if search_params['bedrooms'] else None
+                    bathrooms = int(search_params['bathrooms']) if search_params['bathrooms'] else None
+                except (ValueError, TypeError):
+                    bedrooms = None
+                    bathrooms = None
+
+                # Get recommendations using the recommender
+                recommended_properties = recommender.get_recommendations(
+                    location=search_params['location'],
+                    price=price,
+                    bedrooms=bedrooms,
+                    bathrooms=bathrooms
+                )
+                
+                print(f"Found {len(recommended_properties)} matching properties")
+                
+            except Exception as e:
+                print(f"Error getting recommendations: {str(e)}")
+                recommended_properties = []
+        else:
+            # Get default recommendations
+            try:
+                recommended_properties = recommender.get_recommendations()[:5]  # Get top 5 default recommendations
+            except Exception as e:
+                print(f"Error getting default recommendations: {str(e)}")
+                recommended_properties = []
+
+        # If location is provided, get price range statistics
+        price_range = None
+        if search_params['location']:
+            try:
+                price_range = recommender.get_price_range(search_params['location'])
+            except Exception as e:
+                print(f"Error getting price range: {str(e)}")
+
+        return render_template('user/dashboard.html',
+                            active_tab=tab,
+                            search_params=search_params,
+                            recommended_properties=recommended_properties,
+                            saved_properties=saved_properties,
+                            scheduled_visits=scheduled_visits,
+                            total_saved=total_saved,
+                            total_visits=total_visits,
+                            price_range=price_range)
+
+    except Exception as e:
+        print(f"Dashboard error: {str(e)}")
+        flash('An error occurred while loading the dashboard.', 'error')
+        return redirect(url_for('home'))
 
 # user required decorator for user-specific routes
 def user_required(f):
@@ -622,6 +669,7 @@ def save_property(property_id):
     # Only regular users can access this route
     # Your property saving logic here
     pass
+
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -715,52 +763,65 @@ def accept_visit(visit_id):
 # Initialize the recommender (do this at app startup)
 recommender = RentalRecommender()
 
-@app.route('/recommendations', methods=['GET'])
+@app.route('/get_recommendations', methods=['GET'])
 def get_recommendations():
     try:
-        # Get and print raw parameters
-        location = request.args.get('location')
-        min_price = request.args.get('min_price')
-        max_price = request.args.get('max_price')
-        bedrooms = request.args.get('bedrooms')
-        bathrooms = request.args.get('bathrooms')
+        print("\n=== Starting get_recommendations ===")
         
-        print(f"Raw parameters: location={location}, min_price={min_price}, max_price={max_price}, bedrooms={bedrooms}, bathrooms={bathrooms}")
+        # Get search parameters
+        location = request.args.get('location', '')
+        property_type = request.args.get('property_type', '')
+        min_price = request.args.get('min_price', '')
+        max_price = request.args.get('max_price', '')
+        bedrooms = request.args.get('bedrooms', '')
+        bathrooms = request.args.get('bathrooms', '')
         
-        # Convert price to single value if needed
-        price = None
-        if min_price and max_price:
-            try:
-                min_p = float(min_price)
-                max_p = float(max_price)
-                price = (min_p + max_p) / 2
-            except (ValueError, TypeError):
-                price = None
+        print(f"Search parameters received:")
+        print(f"Location: {location}")
+        print(f"Property Type: {property_type}")
+        print(f"Price Range: {min_price} - {max_price}")
+        print(f"Bedrooms: {bedrooms}")
+        print(f"Bathrooms: {bathrooms}")
         
-        # Convert other parameters
-        try:
-            bedrooms = int(bedrooms) if bedrooms else None
-            bathrooms = int(bathrooms) if bathrooms else None
-        except (ValueError, TypeError):
-            bedrooms = None
-            bathrooms = None
+        # Read CSV file
+        print("\nReading CSV file...")
+        df = pd.read_csv('rental_apts.csv')
+        print(f"Initial number of properties: {len(df)}")
+        print("\nFirst few rows of data:")
+        print(df.head())
         
-        print(f"Converted parameters: price={price}, bedrooms={bedrooms}, bathrooms={bathrooms}")
+        # Apply filters
+        if location:
+            df = df[df['neighborhood'].str.contains(location, case=False, na=False)]
+            print(f"\nAfter location filter: {len(df)} properties")
+            
+        if min_price and min_price.isdigit():
+            df = df[df['price'] >= float(min_price)]
+            print(f"After min price filter: {len(df)} properties")
+            
+        if max_price and max_price.isdigit():
+            df = df[df['price'] <= float(max_price)]
+            print(f"After max price filter: {len(df)} properties")
+            
+        if bedrooms and str(bedrooms).isdigit():
+            df = df[df['bedrooms'] >= int(bedrooms)]
+            print(f"After bedrooms filter: {len(df)} properties")
+            
+        if bathrooms and str(bathrooms).isdigit():
+            df = df[df['bathrooms'] >= int(bathrooms)]
+            print(f"After bathrooms filter: {len(df)} properties")
         
-        # Get recommendations
-        recommendations = recommender.get_recommendations(
-            location=location,
-            price=price,
-            bedrooms=bedrooms,
-            bathrooms=bathrooms
-        )
+        # Convert to list of dictionaries
+        recommendations = df.to_dict('records')
+        print(f"\nFinal number of recommendations: {len(recommendations)}")
         
-        return jsonify({'status': 'success', 'data': recommendations}), 200
+        return jsonify({'data': recommendations}), 200
         
     except Exception as e:
-        print(f"Error in recommendations route: {str(e)}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
+        print(f"\nError in get_recommendations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to get recommendations'}), 500
 
 @app.route('/price-range', methods=['GET'])
 def get_price_range():
@@ -1520,6 +1581,169 @@ def admin_delete_user(user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/property/<int:property_id>/rate', methods=['POST'])
+@login_required
+def rate_property(property_id):
+    if not current_user.is_authenticated:
+        flash('You must be logged in to rate properties.', 'warning')
+        return redirect(url_for('login'))
+    
+    rating_value = request.form.get('rating')
+    comment = request.form.get('comment')
+    
+    if not rating_value or not rating_value.isdigit() or int(rating_value) not in range(1, 6):
+        flash('Please provide a valid rating between 1 and 5.', 'danger')
+        return redirect(url_for('properties', property_id=property_id))
+    
+    # Check if user has already rated this property
+    existing_rating = Rating.query.filter_by(
+        user_id=current_user.id,
+        property_id=property_id
+    ).first()
+    
+    if existing_rating:
+        existing_rating.rating = int(rating_value)
+        existing_rating.comment = comment
+        flash('Your rating has been updated!', 'success')
+    else:
+        new_rating = Rating(
+            user_id=current_user.id,
+            property_id=property_id,
+            rating=int(rating_value),
+            comment=comment
+        )
+        db.session.add(new_rating)
+        flash('Thank you for your rating!', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('properties', property_id=property_id))
+
+@app.template_filter('avg_rating')
+def avg_rating(ratings):
+    if not ratings:
+        return 0
+    return sum(r.rating for r in ratings) / len(ratings)
+
+@app.route('/property/save/<int:property_id>', methods=['POST'])
+@login_required
+def toggle_save_property(property_id):
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Please login to save properties'}), 401
+    
+    try:
+        # Check if property exists
+        property = Property.query.get_or_404(property_id)
+        
+        # Check if already saved
+        existing_save = SavedProperty.query.filter_by(
+            user_id=current_user.id,
+            property_id=property_id
+        ).first()
+        
+        if existing_save:
+            db.session.delete(existing_save)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'saved': False,
+                'message': 'Property removed from saved listings'
+            })
+        else:
+            new_save = SavedProperty(
+                user_id=current_user.id,
+                property_id=property_id
+            )
+            db.session.add(new_save)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'saved': True,
+                'message': 'Property saved successfully'
+            })
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/check-saved/<int:property_id>')
+@login_required
+def check_saved(property_id):
+    if not current_user.is_authenticated:
+        return jsonify({'saved': False})
+    
+    is_saved = SavedProperty.query.filter_by(
+        user_id=current_user.id,
+        property_id=property_id
+    ).first() is not None
+    
+    return jsonify({'saved': is_saved})
+
+@app.route('/saved-properties')
+@login_required
+def saved_properties():
+    saved = SavedProperty.query.filter_by(user_id=current_user.id).all()
+    properties = [save.property_save for save in saved]
+    return render_template('saved_properties.html', properties=properties)
+
+def get_property_recommendations(location=None, min_price=None, max_price=None, bedrooms=None, bathrooms=None):
+    try:
+        # Debug print
+        print(f"Loading CSV file from current directory: {os.getcwd()}")
+        
+        # Read the CSV file
+        df = pd.read_csv('rental_apts.csv')
+        print(f"Successfully loaded {len(df)} properties from CSV")
+        
+        # Print the first few rows and columns for debugging
+        print("\nFirst few rows of the dataset:")
+        print(df.head())
+        print("\nColumns in the dataset:", df.columns.tolist())
+        
+        # Create a copy for filtering
+        filtered_df = df.copy()
+        
+        # Apply filters
+        if location:
+            print(f"\nFiltering by location: {location}")
+            filtered_df = filtered_df[filtered_df['neighborhood'].str.contains(location, case=False, na=False)]
+            print(f"Properties after location filter: {len(filtered_df)}")
+        
+        if min_price and min_price.isdigit():
+            min_price = float(min_price)
+            print(f"\nFiltering by min price: {min_price}")
+            filtered_df = filtered_df[filtered_df['price'] >= min_price]
+            print(f"Properties after min price filter: {len(filtered_df)}")
+        
+        if max_price and max_price.isdigit():
+            max_price = float(max_price)
+            print(f"\nFiltering by max price: {max_price}")
+            filtered_df = filtered_df[filtered_df['price'] <= max_price]
+            print(f"Properties after max price filter: {len(filtered_df)}")
+        
+        if bedrooms and bedrooms.isdigit():
+            bedrooms = int(bedrooms)
+            print(f"\nFiltering by bedrooms: {bedrooms}+")
+            filtered_df = filtered_df[filtered_df['bedrooms'] >= bedrooms]
+            print(f"Properties after bedroom filter: {len(filtered_df)}")
+        
+        if bathrooms and bathrooms.isdigit():
+            bathrooms = int(bathrooms)
+            print(f"\nFiltering by bathrooms: {bathrooms}+")
+            filtered_df = filtered_df[filtered_df['bathrooms'] >= bathrooms]
+            print(f"Properties after bathroom filter: {len(filtered_df)}")
+        
+        # Convert to list of dictionaries
+        results = filtered_df.to_dict('records')
+        print(f"\nFinal number of recommendations: {len(results)}")
+        
+        return results
+
+    except Exception as e:
+        print(f"Error in get_property_recommendations: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return []
 
 # Run the Flask app
 if __name__ == '__main__':

@@ -105,3 +105,34 @@ class Contact(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='Unread')  # Unread, Read, Replied
 
+
+class Rating(db.Model):
+    __tablename__ = 'ratings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Rename these relationship attributes to avoid conflicts
+    user_rating = db.relationship('User', backref=db.backref('user_ratings', lazy=True))
+    property_rating = db.relationship('Property', backref=db.backref('property_ratings', lazy=True))
+    
+    # Rename the property method to avoid conflict
+    @property
+    def formatted_date(self):
+        return self.created_at.strftime('%B %d, %Y')
+
+class SavedProperty(db.Model):
+    __tablename__ = 'saved_properties'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    date_saved = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Add relationship to get the property details
+    property_save = db.relationship('Property', backref='saved_by', lazy=True)
+

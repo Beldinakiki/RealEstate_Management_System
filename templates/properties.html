@@ -84,6 +84,30 @@
                 <i class="fa fa-calendar"></i> Schedule Visit
               </button>
               {% endif %}
+              {% if current_user.is_authenticated %}
+              <button class="btn-custom" data-bs-toggle="modal" data-bs-target="#ratingModal{{ property.id }}">
+                <i class="fa fa-star"></i> Rate
+              </button>
+              <button 
+                class="btn-custom save-property-btn" 
+                data-property-id="{{ property.id }}"
+                onclick="toggleSaveProperty(this, {{ property.id }})">
+                <i class="fa fa-heart"></i> <span>Save</span>
+              </button>
+              {% endif %}
+            </div>
+
+            <!-- Add Rating Display -->
+            <div class="property-rating mt-2">
+              <div class="rating-summary">
+                {% set avg_rating = property.ratings|avg_rating %}
+                <div class="stars">
+                  {% for i in range(5) %}
+                    <i class="fa fa-star{% if i < avg_rating|round(0, 'floor') %} text-warning{% endif %}"></i>
+                  {% endfor %}
+                </div>
+                <span class="rating-count">({{ property.ratings|length }} reviews)</span>
+              </div>
             </div>
           </div>
         </div>
@@ -275,6 +299,44 @@
     {% endfor %}
   {% endif %}
 
+  <!-- Rating Modal -->
+  {% if current_user.is_authenticated %}
+    {% for property in properties %}
+    <div class="modal fade" id="ratingModal{{ property.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Rate this Property</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form action="{{ url_for('rate_property', property_id=property.id) }}" method="POST">
+              <div class="rating-stars mb-3">
+                <div class="rate">
+                  <input type="radio" id="star5-{{ property.id }}" name="rating" value="5" />
+                  <label for="star5-{{ property.id }}" title="5 stars">5 stars</label>
+                  <input type="radio" id="star4-{{ property.id }}" name="rating" value="4" />
+                  <label for="star4-{{ property.id }}" title="4 stars">4 stars</label>
+                  <input type="radio" id="star3-{{ property.id }}" name="rating" value="3" />
+                  <label for="star3-{{ property.id }}" title="3 stars">3 stars</label>
+                  <input type="radio" id="star2-{{ property.id }}" name="rating" value="2" />
+                  <label for="star2-{{ property.id }}" title="2 stars">2 stars</label>
+                  <input type="radio" id="star1-{{ property.id }}" name="rating" value="1" />
+                  <label for="star1-{{ property.id }}" title="1 star">1 star</label>
+                </div>
+              </div>
+              <div class="form-group mb-3">
+                <textarea name="comment" class="form-control" rows="3" placeholder="Share your thoughts about this property (optional)"></textarea>
+              </div>
+              <button type="submit" class="btn-custom w-100">Submit Rating</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+
   <footer>
     <div class="container">
       <p>Copyright © 2024 Beldina Kinya. All rights reserved.</p>
@@ -291,6 +353,87 @@
         preloader.style.display = "none";
       }
     });
+  </script>
+  <script>
+    function toggleSaveProperty(button, propertyId) {
+        fetch(`/property/save/${propertyId}`, {  // Updated URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateSaveButton(button, data.saved);
+                showToast(data.message);
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred', 'error');
+        });
+    }
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Your existing preloader code...
+
+        // Check saved status for all save buttons
+        if (document.querySelector('.save-property-btn')) {
+            const saveButtons = document.querySelectorAll('.save-property-btn');
+            saveButtons.forEach(button => {
+                const propertyId = button.dataset.propertyId;
+                checkSavedStatus(button, propertyId);
+            });
+        }
+    });
+
+    function checkSavedStatus(button, propertyId) {
+        fetch(`/check-saved/${propertyId}`)
+            .then(response => response.json())
+            .then(data => {
+                updateSaveButton(button, data.saved);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function updateSaveButton(button, saved) {
+        const icon = button.querySelector('i');
+        const text = button.querySelector('span');
+        
+        if (saved) {
+            button.classList.add('saved');
+            text.textContent = 'Saved';
+        } else {
+            button.classList.remove('saved');
+            text.textContent = 'Save';
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        // Create a simple toast notification
+        const toast = document.createElement('div');
+        toast.className = `toast ${type} show`;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+        toast.style.color = 'white';
+        toast.style.padding = '15px 25px';
+        toast.style.borderRadius = '4px';
+        toast.style.zIndex = '1000';
+        toast.textContent = message;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
   </script>
   
 </body>
