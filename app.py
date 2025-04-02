@@ -21,7 +21,7 @@ import traceback
 import io
 import csv
 import xlsxwriter
-import pdfkit  # You'll need to install: pip install pdfkit
+import pdfkit
 from fuzzywuzzy import fuzz
 
 from flask_sqlalchemy import SQLAlchemy
@@ -135,7 +135,7 @@ def login():
         if user and check_password_hash(user.password, password):
             # Check if user is an unverified agent before login
             if user.role == 'agent' and not user.verified:
-                login_user(user)  # Login the user first
+                login_user(user) 
                 flash('Your account is pending verification. You will be notified once an admin verifies your account.', 'warning')
                 return redirect(url_for('home'))
             
@@ -149,7 +149,7 @@ def login():
             elif user.role == 'admin':
                 return redirect(url_for('admin_dashboard'))
             else:
-                return redirect(url_for('properties'))  # Changed to redirect to properties for regular users
+                return redirect(url_for('properties'))  
         else:
             flash('Invalid email or password', 'danger')
     else:
@@ -172,7 +172,6 @@ def logout():
 def home():
     return render_template('index.html')
 
-# Contact page
 @app.route('/contact', methods=['POST'])
 def contact():
     if request.method == 'POST':
@@ -204,14 +203,12 @@ def contact():
             
     return redirect(url_for('home', _anchor='contact'))
 
-# Properties listing page
 @app.route('/properties')
 def properties():
     # Get all properties with their details and agent information
     properties = Property.query.join(User, Property.agent_id == User.id).all()
     return render_template('properties.html', properties=properties)
 
-# Property details page
 @app.route('/details')
 def details():
     return render_template('property-details.html')
